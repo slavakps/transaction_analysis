@@ -1,13 +1,10 @@
 import json
 from datetime import datetime
-from .utils import (
-    read_transactions_exel,
-    filter_transactions_by_date,
-    get_greeting,
-    calculate_cards_statistics,
-    get_top_transactions,
-)
-from .services import get_stock_prices, get_currency_rates
+
+from .services import get_currency_rates, get_stock_prices
+from .utils import (calculate_cards_statistics, filter_transactions_by_date, get_greeting, get_top_transactions,
+                    read_transactions_exel)
+
 
 def main_page(target_date: str) -> dict:
     """Главная функция, возвращающая JSON-ответ для веб-страницы"""
@@ -25,6 +22,7 @@ def main_page(target_date: str) -> dict:
         "stock_prices": get_stock_prices(settings["user_stocks"]),
     }
     return result
+
 
 if __name__ == "__main__":
     # Тестируем на примере даты

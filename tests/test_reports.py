@@ -1,7 +1,8 @@
-import pytest
-import pandas as pd
 from datetime import datetime, timedelta
-from reports import get_last_three_months_period, spending_by_weekday
+
+import pandas as pd
+
+from src.reports import get_last_three_months_period, spending_by_weekday
 
 
 def test_get_last_three_months_period():
@@ -26,11 +27,11 @@ def test_spending_by_weekday(sample_transactions):
 
     # Проверяем структуру результата
     assert isinstance(result, pd.DataFrame)
-    assert 'day_of_week' in result.columns
-    assert 'average_spent' in result.columns
+    assert "day_of_week" in result.columns
+    assert "average_spent" in result.columns
 
     # Проверяем что есть данные
     assert len(result) > 0
 
     # Проверяем что средние траты положительные числа
-    assert all(result['average_spent'] > 0)
+    assert all(result["average_spent"] > 0)

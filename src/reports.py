@@ -1,8 +1,9 @@
-import json
 import functools
-import pandas as pd
+import json
 from datetime import datetime, timedelta
-from typing import Callable, Any, Optional
+from typing import Any, Callable, Optional
+
+import pandas as pd
 
 
 def report_to_file(func: Callable) -> Callable:
@@ -18,7 +19,7 @@ def report_to_file(func: Callable) -> Callable:
         filename = f"report_{func.__name__}_{timestamp}.json"
 
         # Записываем результат в файл
-        with open(filename, 'w', encoding='utf-8') as f:
+        with open(filename, "w", encoding="utf-8") as f:
             json.dump(result, f, indent=2, ensure_ascii=False, default=str)
 
         print(f"Отчет сохранен в файл: {filename}")
@@ -36,7 +37,7 @@ def report_to_file_with_name(filename: str) -> Callable:
             result = func(*args, **kwargs)
 
             # Используем переданное имя файла
-            with open(filename, 'w', encoding='utf-8') as f:
+            with open(filename, "w", encoding="utf-8") as f:
                 json.dump(result, f, indent=2, ensure_ascii=False, default=str)
 
             print(f"Отчет сохранен в файл: {filename}")
@@ -68,11 +69,11 @@ def spending_by_weekday(transactions: pd.DataFrame, date: Optional[str] = None) 
 
     # Создаем копию данных
     df = transactions.copy()
-    df['Дата операции'] = pd.to_datetime(df['Дата операции'], format="%d.%m.%Y %H:%M:%S")
+    df["Дата операции"] = pd.to_datetime(df["Дата операции"], format="%d.%m.%Y %H:%M:%S")
 
     # Фильтруем по периоду и только расходы (отрицательные суммы)
-    period_mask = (df['Дата операции'] >= start_date) & (df['Дата операции'] <= end_date)
-    expenses_mask = df['Сумма операции'] < 0
+    period_mask = (df["Дата операции"] >= start_date) & (df["Дата операции"] <= end_date)
+    expenses_mask = df["Сумма операции"] < 0
 
     filtered_df = df[period_mask & expenses_mask]
 
@@ -81,27 +82,24 @@ def spending_by_weekday(transactions: pd.DataFrame, date: Optional[str] = None) 
 
     # Добавляем день недели и считаем средние траты
     result = (
-        filtered_df
-        .assign(day_of_week=filtered_df['Дата операции'].dt.day_name())
-        .groupby('day_of_week')['Сумма операции']
+        filtered_df.assign(day_of_week=filtered_df["Дата операции"].dt.day_name())
+        .groupby("day_of_week")["Сумма операции"]
         .apply(lambda x: abs(x).mean())
         .round(2)
         .reset_index()
-        .rename(columns={'Сумма операции': 'average_spent'})
+        .rename(columns={"Сумма операции": "average_spent"})
     )
 
     return result
 
 
 @report_to_file
-def spending_by_weekday_auto(transactions: pd.DataFrame,
-                            date: Optional[str] = None) -> pd.DataFrame:
+def spending_by_weekday_auto(transactions: pd.DataFrame, date: Optional[str] = None) -> pd.DataFrame:
     """с автоматическим именем файла отчета"""
     return spending_by_weekday(transactions, date)
 
 
 @report_to_file_with_name("weekly_spending_report.json")
-def spending_by_weekday_custom(transactions: pd.DataFrame,
-                              date: Optional[str] = None) -> pd.DataFrame:
+def spending_by_weekday_custom(transactions: pd.DataFrame, date: Optional[str] = None) -> pd.DataFrame:
     """с указанным именем файла отчета"""
     return spending_by_weekday(transactions, date)

@@ -17,15 +17,19 @@ def test_analyze_cashback_categories(sample_transactions):
     assert cashback_values == sorted(cashback_values, reverse=True)
 
     # Проверяем конкретные значения
-    assert result['Электроника'] == 20.0
-    assert result['Супермаркеты'] == 10.0
-    assert result['Рестораны'] == 5.0
+    assert result["Электроника"] == 20.0
+    assert result["Супермаркеты"] == 10.0
+    assert result["Рестораны"] == 5.0
 
-@pytest.mark.parametrize("year,month,expected_categories", [
-    (2021, 12, 3),  # Декабрь 2021 - 3 категории
-    (2021, 11, 0),  # Ноябрь 2021 - нет данных (0 категорий)
-    (2022, 1, 0),   # Январь 2022 - нет данных
-])
+
+@pytest.mark.parametrize(
+    "year,month,expected_categories",
+    [
+        (2021, 12, 3),  # Декабрь 2021 - 3 категории
+        (2021, 11, 0),  # Ноябрь 2021 - нет данных (0 категорий)
+        (2022, 1, 0),  # Январь 2022 - нет данных
+    ],
+)
 def test_analyze_cashback_categories_different_months(sample_transactions, year, month, expected_categories):
     """Параметризованный тест для разных месяцев"""
     df = sample_transactions.copy()
@@ -40,5 +44,5 @@ def test_analyze_cashback_categories_simple(sample_transactions):
     result = analyze_cashback_categories(df, 2021, 12)
 
     # Проверяем результат
-    expected = {'Электроника': 20.0, 'Супермаркеты': 10.0, 'Рестораны': 5.0}
+    expected = {"Электроника": 20.0, "Супермаркеты": 10.0, "Рестораны": 5.0}
     assert result == expected
