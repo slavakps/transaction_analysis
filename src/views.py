@@ -3,16 +3,20 @@ from datetime import datetime
 
 from .services import get_currency_rates, get_stock_prices
 from .utils import (calculate_cards_statistics, filter_transactions_by_date, get_greeting, get_top_transactions,
-                    read_transactions_exel)
+                    logger, read_transactions_excel)
 
 
 def main_page(target_date: str) -> dict:
     """Главная функция, возвращающая JSON-ответ для веб-страницы"""
     with open("user_settings.json", "r", encoding="utf-8") as f:
         settings = json.load(f)
+    logger.info("Настройки пользователя загружены")
 
-    df = read_transactions_exel("data/operations.xlsx")
+    df = read_transactions_excel("data/operations.xlsx")
+    logger.info(f"Загружено {len(df)} транзакций")
+
     filtered_df = filter_transactions_by_date(df, target_date)
+    logger.info(f"Отфильтровано {len(filtered_df)} транзакций за период")
 
     result = {
         "greeting": get_greeting(datetime.strptime(target_date, "%Y-%m-%d %H:%M:%S")),
@@ -21,6 +25,7 @@ def main_page(target_date: str) -> dict:
         "currency_rates": get_currency_rates(settings["user_currencies"]),
         "stock_prices": get_stock_prices(settings["user_stocks"]),
     }
+    logger.info("Главная страница сформирована успешно")
     return result
 
 

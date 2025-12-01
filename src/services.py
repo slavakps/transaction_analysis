@@ -4,32 +4,36 @@ import pandas as pd
 import requests
 from dotenv import load_dotenv
 
+from src.utils import logger
+
+load_dotenv()
+
 
 def get_currency_rates(currencies: list) -> list:
-    """Получает курсы валют из Frankfurter API"""
+    """Получает курсы валют из Exchangerate-API"""
     try:
-        currencies_str = ",".join(currencies)
+        API_KEY = os.getenv("EXCHANGERATE_API_KEY")
 
-        # Запрашиваем курсы относительно EUR
-        url = f"https://api.frankfurter.app/latest?base=EUR&symbols={currencies_str}"
+        if not API_KEY:
+            print("API ключ не найден в .env файле")
+            return []
+
+        # Запрашиваем курсы относительно RUB
+        url = f"https://v6.exchangerate-api.com/v6/{API_KEY}/latest/RUB"
         response = requests.get(url, timeout=10)
         data = response.json()
 
         currency_rates = []
         for currency in currencies:
-            if currency in data["rates"]:
-                # Конвертируем: 1 RUB = 1 / EUR_to_currency
-                rate = 1 / data["rates"][currency]
+            if currency in data["conversion_rates"]:
+                rate = 1 / data["conversion_rates"][currency]
                 currency_rates.append({"currency": currency, "rate": round(rate, 2)})
-
+        logger.info(f"Курсы валют получены: {currency_rates}")
         return currency_rates
 
     except Exception as e:
-        print(f"Ошибка при получении курсов валют: {e}")
+        logger.error(f"Ошибка получения курсов валют: {e}")
         return []
-
-
-load_dotenv()
 
 
 def get_stock_prices(stocks: list) -> list:
@@ -82,11 +86,25 @@ def sort_cashback_results(cashback_series: pd.Series) -> dict:
     return sorted_cashback
 
 
-def analyze_cashback_categories(df: pd.DataFrame, year: int, month: int) -> dict:
-    """Анализирует выгодность категорий для повышенного кешбэка"""
-
+def analyze_cashback_categories(df: pd.DataFrame, year: int, month: int, top_n: int = 3) -> dict:
+    """Анализирует самые выгодные категории по сумме кэшбэка"""
     filtered_data = filter_data_by_month(df, year, month)
-    cashback_series = calculate_cashback_by_category(filtered_data)
-    result = sort_cashback_results(cashback_series)
+    expenses_data = filtered_data[filtered_data["Сумма операции"] < 0]
+    logger.info(f"Анализ кэшбэка за {month}/{year}, топ-{top_n}")
+
+    # Группируем по категориям и считаем кешбэк
+    category_cashback = expenses_data.groupby("Категория")["Кэшбэк"].sum().sort_values(ascending=False)
+
+    # Фильтруем категории с нулевым кэшбэком
+    category_cashback = category_cashback[category_cashback > 0]
+
+    # Берем топ-N категорий
+    top_categories = category_cashback.head(top_n)
+
+    # Форматируем результат
+    result = {}
+    for category, cashback_amount in top_categories.items():
+        result[category] = round(cashback_amount, 2)
+        logger.info(f"Найдено {len(result)} выгодных категорий")
 
     return result

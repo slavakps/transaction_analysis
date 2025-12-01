@@ -1,3 +1,5 @@
+import logging
+import sys
 from datetime import datetime
 
 import pandas as pd
@@ -8,7 +10,7 @@ def parse_date(data_string: str) -> datetime:
     return datetime.strptime(data_string, "%Y-%m-%d %H:%M:%S")
 
 
-def read_transactions_exel(file_path: str) -> pd.DataFrame:
+def read_transactions_excel(file_path: str) -> pd.DataFrame:
     """Читает Excel-файл с транзакциями и возвращает DataFrame"""
     df = pd.read_excel(file_path)
     return df
@@ -78,3 +80,20 @@ def get_top_transactions(df: pd.DataFrame, top_n: int = 5) -> list:
         )
 
     return top_transactions
+
+
+def setup_logging():
+    """Настройка логирования для всего проекта"""
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        handlers=[
+            logging.FileHandler("transaction_analysis.log", encoding="utf-8"),
+            logging.StreamHandler(sys.stdout),
+        ],
+    )
+
+    return logging.getLogger(__name__)
+
+
+logger = setup_logging()
